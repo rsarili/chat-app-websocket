@@ -1,0 +1,99 @@
+service: serverless-ws-test
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-central-1
+  lambdaHashingVersion: 20201221
+  websocketsApiName: custom-websockets-api-name
+  websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
+
+  stage: ${opt:stage, 'dev'}
+
+  environment:
+    APIG_ENDPOINT:
+      Fn::Join:
+        - ""
+        - - Ref: WebsocketsApi
+          - .execute-api.
+          - Ref: AWS::Region
+          - .amazonaws.com/
+          - ${self:provider.stage}
+    CONNECTION_TABLE:
+      Ref: WebsocketConnectionTable
+    USER_TABLE:
+      Ref: UserTable
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DeleteItem
+        - dynamodb:GetItem
+        - dynamodb:Scan
+        - dynamodb:UpdateItem
+        - dynamodb:PutItem
+        - dynamodb:Query
+      Resource:
+        - Fn::GetAtt:
+            - WebsocketConnectionTable
+            - Arn
+        - Fn::GetAtt:
+            - UserTable
+            - Arn
+        - Fn::Join:
+            - ""
+            - - Fn::GetAtt:
+                  - WebsocketConnectionTable
+                  - Arn
+              - /index/*
+        - Fn::Join:
+            - ""
+            - - Fn::GetAtt:
+                  - UserTable
+                  - Arn
+              - /index/*
+functions:
+  connectionHandler:
+    handler: src/handler.connectionHandler
+    events:
+      - websocket:
+          route: $connect
+      - websocket:
+          route: $disconnect
+      - websocket:
+          route: $default
+      - websocket:
+          route: message
+      - websocket:
+          route: broadcast
+resources:
+  Resources:
+    WebsocketConnectionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+          - AttributeName: username
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UsernameIndex
+            KeySchema:
+              - AttributeName: username
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+    UserTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: username
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+        KeySchema:
+          - AttributeName: username
+            KeyType: HASH
