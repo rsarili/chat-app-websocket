@@ -3,7 +3,7 @@ name: Continuous Integration Pipeline
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   ci-pipeline:
