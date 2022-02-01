@@ -66,6 +66,8 @@ functions:
           route: message
       - websocket:
           route: broadcast
+      - websocket:
+          route: getOnlineUsers
 resources:
   Resources:
     WebsocketConnectionTable:
