@@ -53,7 +53,7 @@ const connectionHandler = async (event, context) => {
       break;
     }
 
-    case "getOnlineUsers":
+    case "getOnlineUsers": {
       const recipients = (
         await connectionTableHandler.getByUsername(body.data.to)
       ).Items;
@@ -66,6 +66,7 @@ const connectionHandler = async (event, context) => {
 
       await sendFromServer(recipients, { users: [...uniqueOnlineUsers] });
       break;
+    }
 
     case "$default":
     default:
