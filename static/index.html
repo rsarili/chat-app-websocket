@@ -34,6 +34,9 @@
     let ws;
 
     function connect() {
+      if (ws) {
+        ws.close();
+      }
       ws = new WebSocket(
         url + "?username=" + document.getElementById("name").value
       );
@@ -53,7 +56,7 @@
             action: "getUsers",
           })
         );
-        }, 60000)
+        }, 5 * 60 * 1000)
       };
 
       ws.onmessage = function (evt) {
