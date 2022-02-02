@@ -1,9 +1,7 @@
 const AWS = require("aws-sdk");
 
 const dynamodb = new AWS.DynamoDB.DocumentClient({ region: "eu-central-1" });
-const connectionTable =
-  process.env.CONNECTION_TABLE ||
-  "serverless-ws-test-dev-WebsocketConnectionTable-BQGDCLQB7H9C";
+const connectionTable = process.env.CONNECTION_TABLE;
 
 exports.put = async (connectionId, username) => {
   await dynamodb
