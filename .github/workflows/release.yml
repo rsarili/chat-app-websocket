@@ -6,7 +6,10 @@ on:
       - "v*"
 
 jobs:
-  ci-pipeline:
+  release-pipeline:
+    env:
+      GITHUB_SITE_NAME: ${{ secrets.SITE_NAME_PROD }}
+      GITHUB_WS_URL: ${{ secrest.WS_URL_PROD }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -21,6 +24,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
+      - name: Setup Configs
+        run: |
+          sed -i 's/GITHUB_SITE_NAME/$GITHUB_SITE_NAME/g' serverless.yml
+          sed -i 's/GITHUB_WS_URL/$GITHUB_WS_URL/g' index.html
       - name: build
         run: |
           yarn

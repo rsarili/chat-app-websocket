@@ -1,11 +1,14 @@
 service: serverless-ws-test
 
+plugins:
+  - serverless-s3-sync
+
 provider:
   name: aws
   runtime: nodejs14.x
   region: eu-central-1
   lambdaHashingVersion: 20201221
-  websocketsApiName: custom-websockets-api-name
+  websocketsApiName: websockets-api
   websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
 
   stage: ${opt:stage, 'dev'}
@@ -97,3 +100,38 @@ resources:
         KeySchema:
           - AttributeName: username
             KeyType: HASH
+    WebSite:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+        BucketName: ${self:custom.siteName}
+        WebsiteConfiguration:
+          IndexDocument: index.html
+    WebSiteS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: WebSite
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+              - s3:GetObject
+              Resource:
+                Fn::Join: [
+                  "", [
+                    "arn:aws:s3:::",
+                    {
+                      "Ref": "WebSite"
+                    },
+                    "/*"
+                  ]
+                ]
+custom:
+  siteName: GITHUB_SITE_NAME
+  s3Sync:
+    - bucketName: ${self:custom.siteName}
+      localDir: static
+
