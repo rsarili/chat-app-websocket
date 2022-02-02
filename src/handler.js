@@ -5,6 +5,7 @@ const apig = new AWS.ApiGatewayManagementApi({
 
 const userTableHandler = require("./user-table-handler");
 const connectionTableHandler = require("./connection-table-handler");
+const gwHandler = require("./gw-handler");
 
 const connectionHandler = async (event, context) => {
   console.log(JSON.stringify(event));
@@ -56,7 +57,7 @@ const connectionHandler = async (event, context) => {
       const sender = (await connectionTableHandler.get(connectionId)).Item;
       const body = JSON.parse(event.body);
 
-      await send(recipients, {
+      await gwHandler.send(recipients, {
         action: "broadcast",
         data: { from: sender.username, message: body.data.message },
       });
@@ -76,7 +77,7 @@ const connectionHandler = async (event, context) => {
         uniqueOnlineUsers.add(user.username);
       });
 
-      await send(recipients, {
+      await gwHandler.send(recipients, {
         action: "getUsers",
         data: { online: [...uniqueOnlineUsers] },
       });
@@ -85,12 +86,10 @@ const connectionHandler = async (event, context) => {
 
     case "$default":
     default:
-      await apig
-        .postToConnection({
-          ConnectionId: connectionId,
-          Data: `Received on $default: ${body}`,
-        })
-        .promise();
+      await gwHandler.sendToConnection(
+        connectionId,
+        `Received on $default: ${body}`
+      );
   }
 
   return { statusCode: 200 };
@@ -98,27 +97,7 @@ const connectionHandler = async (event, context) => {
 
 const broadcast = async (message) => {
   const recipients = (await connectionTableHandler.scan()).Items;
-  await send(recipients, message);
-};
-
-const send = async (recipients, data) => {
-  const promises = recipients.map(async (connection) => {
-    try {
-      await apig
-        .postToConnection({
-          ConnectionId: connection.connectionId,
-          Data: JSON.stringify(data),
-        })
-        .promise();
-    } catch (error) {
-      if (error.statusCode === 410) {
-        console.log("deleting stale connection", connection.connectionId);
-        await connectionTableHandler.delete(connection.connectionId);
-      }
-    }
-  });
-
-  await Promise.all(promises);
+  await gwHandler.send(recipients, message);
 };
 
 module.exports = {
