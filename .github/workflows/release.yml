@@ -26,8 +26,8 @@ jobs:
           aws-region: eu-central-1
       - name: Setup Configs
         run: |
-          sed -i 's/GITHUB_SITE_NAME/$GITHUB_SITE_NAME/g' serverless.yml
-          sed -i 's/GITHUB_WS_URL/$GITHUB_WS_URL/g' index.html
+          sed -i 's@GITHUB_SITE_NAME@'"$GITHUB_SITE_NAME"'@g' serverless.yml
+          sed -i 's@GITHUB_WS_URL@'"$GITHUB_WS_URL"'@g' static/index.html
       - name: build
         run: |
           yarn

@@ -28,7 +28,6 @@ jobs:
         run: |
           sed -i 's@GITHUB_SITE_NAME@'"$GITHUB_SITE_NAME"'@g' serverless.yml
           sed -i 's@GITHUB_WS_URL@'"$GITHUB_WS_URL"'@g' static/index.html
-          cat serverless.yml
       - name: build
         run: |
           yarn
