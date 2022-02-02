@@ -9,7 +9,7 @@ jobs:
   release-pipeline:
     env:
       GITHUB_SITE_NAME: ${{ secrets.SITE_NAME_PROD }}
-      GITHUB_WS_URL: ${{ secrest.WS_URL_PROD }}
+      GITHUB_WS_URL: ${{ secrets.WS_URL_PROD }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout

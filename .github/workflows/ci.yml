@@ -9,7 +9,7 @@ jobs:
   ci-pipeline:
     env:
       GITHUB_SITE_NAME: ${{ secrets.SITE_NAME_DEV }}
-      GITHUB_WS_URL: ${{ secrest.WS_URL_DEV }}
+      GITHUB_WS_URL: ${{ secrets.WS_URL_DEV }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
