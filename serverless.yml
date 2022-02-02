@@ -63,11 +63,9 @@ functions:
       - websocket:
           route: $default
       - websocket:
-          route: message
-      - websocket:
           route: broadcast
       - websocket:
-          route: getOnlineUsers
+          route: getUsers
 resources:
   Resources:
     WebsocketConnectionTable:
