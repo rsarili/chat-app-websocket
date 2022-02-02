@@ -16,4 +16,5 @@ jobs:
       - name: build
         run: |
           yarn
+          yarn format:check
           yarn test

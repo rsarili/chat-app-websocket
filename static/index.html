@@ -2,7 +2,7 @@
   <label for="fname">Name: </label>
   <input type="text" id="name" name="fname" />
   <button type="button" onclick="connect()">Connect</button>
-  </br></br>
+  <br /><br />
   <div id="mainContainer">
     <div
       id="onlineUsersContainer"
@@ -24,7 +24,7 @@
   <textarea id="messageTextArea" rows="3" cols="30"></textarea>
   <button type="button" onclick="send()">Send</button>
 
-  </br></br>
+  <br /><br />
   <button type="button" onclick="clearLogs()">Clear Logs</button>
   <div id="logContainer"></div>
 
@@ -50,13 +50,13 @@
         addText("connection established");
 
         // to keep websocket open, since there is a timeout in api gateway, also removing any stale users
-        setInterval(()=> {
+        setInterval(() => {
           ws.send(
-          JSON.stringify({
-            action: "getUsers",
-          })
-        );
-        }, 5 * 60 * 1000)
+            JSON.stringify({
+              action: "getUsers",
+            })
+          );
+        }, 5 * 60 * 1000);
       };
 
       ws.onmessage = function (evt) {
@@ -140,8 +140,7 @@
     }
 
     function clearLogs() {
-      document.getElementById("logContainer").innerHTML ="";
+      document.getElementById("logContainer").innerHTML = "";
     }
-
   </script>
 </html>

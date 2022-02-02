@@ -117,20 +117,11 @@ resources:
               Effect: Allow
               Principal: "*"
               Action:
-              - s3:GetObject
+                - s3:GetObject
               Resource:
-                Fn::Join: [
-                  "", [
-                    "arn:aws:s3:::",
-                    {
-                      "Ref": "WebSite"
-                    },
-                    "/*"
-                  ]
-                ]
+                Fn::Join: ["", ["arn:aws:s3:::", { "Ref": "WebSite" }, "/*"]]
 custom:
   siteName: GITHUB_SITE_NAME
   s3Sync:
     - bucketName: ${self:custom.siteName}
       localDir: static
-
