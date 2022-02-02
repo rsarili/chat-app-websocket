@@ -13,6 +13,7 @@
     "aws-sdk": "^2.1066.0",
     "jest": "^27.4.7",
     "prettier": "^2.5.1",
-    "serverless": "^2.72.2"
+    "serverless": "^2.72.2",
+    "serverless-s3-sync": "^1.17.3"
   }
 }

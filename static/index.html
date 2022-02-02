@@ -1,0 +1,144 @@
+<html>
+  <label for="fname">Name: </label>
+  <input type="text" id="name" name="fname" />
+  <button type="button" onclick="connect()">Connect</button>
+  </br></br>
+  <div id="mainContainer">
+    <div
+      id="onlineUsersContainer"
+      style="
+        width: 100px;
+        height: 300px;
+        overflow-y: scroll;
+        background-color: rgb(132, 145, 206);
+        float: left;
+      "
+    >
+      <div id="onlineUsers"></div>
+    </div>
+    <div
+      id="historyContainer"
+      style="width: 400px; height: 300px; overflow-y: scroll"
+    ></div>
+  </div>
+  <textarea id="messageTextArea" rows="3" cols="30"></textarea>
+  <button type="button" onclick="send()">Send</button>
+
+  </br></br>
+  <button type="button" onclick="clearLogs()">Clear Logs</button>
+  <div id="logContainer"></div>
+
+  <script>
+    const url = "GITHUB_WS_URL";
+    let onlineUsers = [];
+    let ws;
+
+    function connect() {
+      ws = new WebSocket(
+        url + "?username=" + document.getElementById("name").value
+      );
+
+      ws.onopen = function () {
+        ws.send(
+          JSON.stringify({
+            action: "getUsers",
+          })
+        );
+        addText("connection established");
+
+        // to keep websocket open, since there is a timeout in api gateway, also removing any stale users
+        setInterval(()=> {
+          ws.send(
+          JSON.stringify({
+            action: "getUsers",
+          })
+        );
+        }, 60000)
+      };
+
+      ws.onmessage = function (evt) {
+        addText(evt.data);
+
+        const msg = JSON.parse(evt.data);
+
+        if (msg.action === "getUsers") {
+          onlineUsers = msg.data.online;
+          updateOnlineUsers();
+        }
+
+        if (msg.action === "connected") {
+          const index = onlineUsers.indexOf(msg.data.user);
+          if (index === -1) {
+            onlineUsers.push(msg.data.user);
+            updateOnlineUsers();
+          }
+        }
+
+        if (msg.action === "disconnected") {
+          const index = onlineUsers.indexOf(msg.data.user);
+          if (index > -1) {
+            onlineUsers.splice(index, 1);
+            updateOnlineUsers();
+          }
+        }
+
+        if (msg.action === "broadcast") {
+          addMessage(msg.data.from, msg.data.message);
+        }
+      };
+
+      ws.onclose = function () {
+        addText("connection closed");
+      };
+    }
+
+    function addMessage(from, message) {
+      const historyDiv = document.getElementById("historyContainer");
+
+      const div = document.createElement("div");
+      div.innerHTML = from + ": " + message;
+      historyDiv.appendChild(div);
+    }
+
+    function updateOnlineUsers() {
+      document.getElementById("onlineUsers").remove();
+
+      const onlineUsersDiv = document.createElement("div");
+      onlineUsersDiv.id = "onlineUsers";
+
+      onlineUsers.forEach((element) => {
+        const div = document.createElement("div");
+        div.innerHTML = element;
+        onlineUsersDiv.appendChild(div);
+      });
+      document
+        .getElementById("onlineUsersContainer")
+        .appendChild(onlineUsersDiv);
+    }
+
+    function send() {
+      const message = document.getElementById("messageTextArea").value;
+      ws.send(
+        JSON.stringify({
+          action: "broadcast",
+          data: { message: message },
+        })
+      );
+    }
+
+    function addText(str) {
+      const container = document.getElementById("logContainer");
+      container.innerHTML += getTime() + ": " + str + "<br>";
+    }
+
+    function getTime() {
+      const date = new Date();
+      return date.toLocaleTimeString().split(" ")[0];
+    }
+
+    function clearLogs() {
+      document.getElementById("logContainer").innerHTML ="";
+    }
+
+  </script>
+</html>
