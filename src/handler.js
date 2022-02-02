@@ -17,6 +17,7 @@ const connectionHandler = async (event, context) => {
   switch (routeKey) {
     case "$connect": {
       const username = event.queryStringParameters.username;
+      console.log("username", username);
       if (username.includes(" ")) {
         return { statusCode: 500 };
       }
@@ -24,7 +25,7 @@ const connectionHandler = async (event, context) => {
       const notExist =
         (await connectionTableHandler.getByUsername(username)).Count === 0;
       if (notExist) {
-        await broadcast({ action: "connected", user: username });
+        await broadcast({ action: "connected", data: { user: username } });
       }
 
       await userTableHandler.update(username);
@@ -39,7 +40,10 @@ const connectionHandler = async (event, context) => {
         (await connectionTableHandler.getByUsername(connection.username))
           .Count === 1;
       if (lastConnection) {
-        await broadcast({ action: "disconnected", user: connection.username });
+        await broadcast({
+          action: "disconnected",
+          data: { user: connection.username },
+        });
       }
 
       await connectionTableHandler.delete(connectionId);
