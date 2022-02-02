@@ -3,6 +3,8 @@ const apig = new AWS.ApiGatewayManagementApi({
   endpoint: process.env.APIG_ENDPOINT,
 });
 
+const connectionTableHandler = require("./connection-table-handler");
+
 exports.send = async (recipients, data) => {
   const promises = recipients.map(async (connection) => {
     try {
