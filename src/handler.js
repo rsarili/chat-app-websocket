@@ -15,30 +15,34 @@ const connectionHandler = async (event, context) => {
   } = event;
 
   switch (routeKey) {
-    case "$connect":
+    case "$connect": {
       const username = event.queryStringParameters.username;
       if (username.includes(" ")) {
         return { statusCode: 500 };
+      }
+
+      const notExist =
+        (await connectionTableHandler.getByUsername(username)).Count === 0;
+      if (notExist) {
+        await broadcast({ action: "connected", user: username });
       }
 
       await userTableHandler.update(username);
       await connectionTableHandler.put(connectionId, username);
 
       break;
+    }
 
-    case "$disconnect":
+    case "$disconnect": {
+      const connection = (await connectionTableHandler.get(connectionId)).Item;
+      const lastConnection =
+        (await connectionTableHandler.getByUsername(connection.username))
+          .Count === 1;
+      if (lastConnection) {
+        await broadcast({ action: "disconnected", user: connection.username });
+      }
+
       await connectionTableHandler.delete(connectionId);
-      break;
-
-    case "message": {
-      const body = JSON.parse(event.body);
-
-      const recipients = (
-        await connectionTableHandler.getByUsername(body.data.to)
-      ).Items;
-      const sender = (await connectionTableHandler.get(connectionId)).Item;
-
-      await sendFromUser(sender, recipients, body.data.message);
 
       break;
     }
@@ -48,15 +52,19 @@ const connectionHandler = async (event, context) => {
       const sender = (await connectionTableHandler.get(connectionId)).Item;
       const body = JSON.parse(event.body);
 
-      await sendFromUser(sender, recipients, body.data.message);
+      await send(recipients, {
+        action: "broadcast",
+        data: { from: sender.username, message: body.data.message },
+      });
 
       break;
     }
 
-    case "getOnlineUsers": {
-      const recipients = (
-        await connectionTableHandler.getByUsername(body.data.to)
-      ).Items;
+    case "getUsers": {
+      const username = (await connectionTableHandler.get(connectionId)).Item
+        .username;
+      const recipients = (await connectionTableHandler.getByUsername(username))
+        .Items;
 
       const onlineUsers = (await connectionTableHandler.scan()).Items;
       const uniqueOnlineUsers = new Set();
@@ -64,7 +72,10 @@ const connectionHandler = async (event, context) => {
         uniqueOnlineUsers.add(user.username);
       });
 
-      await sendFromServer(recipients, { users: [...uniqueOnlineUsers] });
+      await send(recipients, {
+        action: "getUsers",
+        data: { online: [...uniqueOnlineUsers] },
+      });
       break;
     }
 
@@ -81,12 +92,9 @@ const connectionHandler = async (event, context) => {
   return { statusCode: 200 };
 };
 
-const sendFromServer = async (recipients, message) => {
-  await send(recipients, { message: message });
-};
-
-const sendFromUser = async (sender, recipients, message) => {
-  await send(recipients, { from: sender.username, message: message });
+const broadcast = async (message) => {
+  const recipients = (await connectionTableHandler.scan()).Items;
+  await send(recipients, message);
 };
 
 const send = async (recipients, data) => {

@@ -13,3 +13,11 @@ exports.update = async (username) => {
     })
     .promise();
 };
+
+exports.scan = async () => {
+  return await dynamodb
+    .scan({
+      TableName: USER_TABLE,
+    })
+    .promise();
+};
