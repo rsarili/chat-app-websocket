@@ -8,8 +8,7 @@ provider:
   runtime: nodejs14.x
   region: eu-central-1
   lambdaHashingVersion: 20201221
-  websocketsApiName: websockets-api
-  websocketsApiRouteSelectionExpression: $request.body.action # custom routes are selected by the value of the action property in the body
+  websocketsApiName: websockets-api-${self:provider.stage}
 
   stage: ${opt:stage, 'dev'}
 
