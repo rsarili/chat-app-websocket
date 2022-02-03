@@ -9,14 +9,6 @@ const userTableHandler = require("./user-table-handler");
 const handler = require("./handler");
 
 describe("handler test", () => {
-  test("should close connect if user name has spaces", async () => {
-    const result = await handler.connectionHandler({
-      queryStringParameters: { username: "john doe" },
-      requestContext: { routeKey: "$connect", connectionId: "conn" },
-    });
-    expect(result).toEqual({ statusCode: 500 });
-  });
-
   test("should broadcast info for new incoming user", async () => {
     connectionTableHandler.getByUsername.mockResolvedValueOnce({ Count: 0 });
     const items = [

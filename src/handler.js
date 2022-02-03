@@ -19,9 +19,6 @@ const connectionHandler = async (event, context) => {
     case "$connect": {
       const username = event.queryStringParameters.username;
       console.log("username", username);
-      if (username.includes(" ")) {
-        return { statusCode: 500 };
-      }
 
       const notExist =
         (await connectionTableHandler.getByUsername(username)).Count === 0;
